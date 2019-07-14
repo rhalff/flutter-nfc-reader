@@ -59,10 +59,6 @@ class FlutterNfcReaderPlugin(registrar: Registrar) : MethodCallHandler, StreamHa
     }
 
     init {
-        // if this is needed, only activate it if we need this hack (e.g. on the huwaei watch.
-        // because the hack is specific to that watch adapter
-        // setStaticValue("android.nfc.NfcAdapter", "sHasNfcFeature", true)
-
         nfcAdapter = NfcAdapter.getDefaultAdapter(activity)
     }
 
@@ -122,7 +118,9 @@ class FlutterNfcReaderPlugin(registrar: Registrar) : MethodCallHandler, StreamHa
 
     private fun startNFC(): Boolean {
         if (nfcAdapter?.isEnabled == true) {
-            setStaticValue("android.nfc.NfcAdapter", "sHasNfcFeature", true)
+          // Only activate if we need this hack (e.g. on the huwaei watch).
+          // because the hack is specific to that watch adapter
+          setStaticValue("android.nfc.NfcAdapter", "sHasNfcFeature", true)
           nfcAdapter?.enableReaderMode(activity, this, READER_FLAGS, null)
           Log.i("RHALFF", "ENABLED READER MODE!!!")
 
