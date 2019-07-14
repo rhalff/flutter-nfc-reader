@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_nfc_reader/flutter_nfc_reader.dart';
+import 'package:screen/screen.dart';
+import 'package:vibrate/vibrate.dart';
 
 void main() => runApp(new MyApp());
 
@@ -13,9 +15,12 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   NfcData _nfcData;
+  FlutterNfcReader _nfcReader;
 
   @override
   void initState() {
+    Screen.keepOn(true);
+    _nfcReader = FlutterNfcReader();
     super.initState();
   }
 
@@ -28,11 +33,16 @@ class _MyAppState extends State<MyApp> {
     print('NFC: Scan started');
 
     print('NFC: Scan readed NFC tag');
-    FlutterNfcReader.read.listen((response) {
+    _nfcReader.onTagDiscovered.listen((response) {
+      Vibrate.vibrate();
+      // Vibrate.feedback(FeedbackType.success);
+
       setState(() {
         _nfcData = response;
       });
     });
+
+    _nfcReader.start();
   }
 
   Future<void> stopNFC() async {
@@ -40,7 +50,7 @@ class _MyAppState extends State<MyApp> {
 
     try {
       print('NFC: Stop scan by user');
-      response = await FlutterNfcReader.stop;
+      response = await _nfcReader.stop();
     } on PlatformException {
       print('NFC: Stop scan exception');
       response = NfcData(
@@ -59,56 +69,61 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    return new MaterialApp(
-      home: new Scaffold(
-          appBar: new AppBar(
-            title: const Text('Plugin example app'),
-          ),
-          body: new SafeArea(
-            top: true,
-            bottom: true,
-            child: new Center(
-              child: ListView(
-                children: <Widget>[
-                  new SizedBox(
-                    height: 10.0,
-                  ),
-                  new Text(
-                    '- NFC Status -\n',
-                    textAlign: TextAlign.center,
-                  ),
-                  new Text(
-                    _nfcData != null ? 'Status: ${_nfcData.status}' : '',
-                    textAlign: TextAlign.center,
-                  ),
-                  new Text(
-                    _nfcData != null ? 'Identifier: ${_nfcData.id}' : '',
-                    textAlign: TextAlign.center,
-                  ),
-                  new Text(
-                    _nfcData != null ? 'Content: ${_nfcData.content}' : '',
-                    textAlign: TextAlign.center,
-                  ),
-                  new Text(
-                    _nfcData != null ? 'Error: ${_nfcData.error}' : '',
-                    textAlign: TextAlign.center,
-                  ),
-                  new RaisedButton(
-                    child: Text('Start NFC'),
-                    onPressed: () {
-                      startNFC();
-                    },
-                  ),
-                  new RaisedButton(
-                    child: Text('Stop NFC'),
-                    onPressed: () {
-                      stopNFC();
-                    },
-                  ),
-                ],
+    return MaterialApp(
+      home: Scaffold(
+          body: SafeArea(
+        top: true,
+        bottom: true,
+        child: new Center(
+          child: ListView(
+            children: <Widget>[
+              new SizedBox(
+                height: 10.0,
               ),
-            ),
-          )),
+              new Text(
+                '- NFC Status -\n',
+                textAlign: TextAlign.center,
+              ),
+              new Text(
+                _nfcData != null ? 'Status: ${_nfcData.status}' : '',
+                textAlign: TextAlign.center,
+              ),
+              new Text(
+                _nfcData != null ? 'Identifier: ${_nfcData.id}' : '',
+                textAlign: TextAlign.center,
+              ),
+              new Text(
+                _nfcData != null ? 'Content: ${_nfcData.content}' : '',
+                textAlign: TextAlign.center,
+              ),
+              new Text(
+                _nfcData != null ? 'Error: ${_nfcData.error}' : '',
+                textAlign: TextAlign.center,
+              ),
+              new Text(
+                _nfcData != null ? 'Type: ${_nfcData.type}' : '',
+                textAlign: TextAlign.center,
+              ),
+              new Text(
+                _nfcData != null ? 'Is Writeable: ${_nfcData.isWritable}' : '',
+                textAlign: TextAlign.center,
+              ),
+              new RaisedButton(
+                child: Text('Start NFC'),
+                onPressed: () {
+                  startNFC();
+                },
+              ),
+              new RaisedButton(
+                child: Text('Stop NFC'),
+                onPressed: () {
+                  stopNFC();
+                },
+              ),
+            ],
+          ),
+        ),
+      )),
     );
   }
 }
